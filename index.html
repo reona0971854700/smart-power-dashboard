@@ -12,9 +12,70 @@
         h1 { color: #00ff99; }
         .status { font-size: 100px; font-weight: bold; margin: 10px 0; }
         #chart {width: 100%; height: 400px; }
-    </style>
+        .navbar {
+            background-color: #000000;          /*背景*/
+            border-bottom: 2px solid #00ff99;   /*底部邊框線*/
+            /*display: flex;                        /*使用彈性布局*/
+            position: fixed;                      /* 固定在最上方，捲動時不會消失 */
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;                        /* 確保導覽列在最上層 */
+            /*justify-content: space-between;       /*讓LOGO在左，連結在右*/
+            align-items: center;                  /*垂直居中*/
+            /*padding: 1px 50px;                   /*內邊距*/
+            /*border-bottom: 2px solid #00ff99;   /*底線*/
+            /*margin-bottom: 30px;                  /*與下方標題保持距離*/
+        }
+        /* 2. 導覽列內部限制器：負責內容置中 */
+        .nav-container {
+            max-width: 1200px;                       /* 設定導覽列內容的最大寬度 */
+            margin: 0 auto;                          /* 「水平置中」的神奇咒語 */
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;          /* Logo 在左，連結在右 */
+            align-items: center;
+        }
+        .logo {
+            color: #00ff99;
+            font-weight: 1.5rem;
+            font-weight: bold;
+        }
+        .nav-links {
+            list-style-type: none;
+            display: flex;
+            gap: 100px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: 0.3;            /*動畫過渡時間*/
+        }
+        /*滑鼠對導覽列的互動效果*/
+        .nav-links a:hover {
+            color: #00ff99;
+        }
+        body {
+            padding: 80px;
+            background: #1a1a1a;
+            color: white;
+            font-family: sans-serif;
+        }
+</style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">⚡ SmartPower-Dashboard</div>
+            <ul class="nav-links">
+                <li><a href="#">儀錶板</a></li>
+                <li><a href="#">歷史數據</a></li>
+                <li><a href="#">設備管理</a></li>
+                <li><a href="#">系統設定</a></li>
+            </ul>
+        </div>
+    </nav>
     <h1>🏠 智慧建築能源管理系統</h1>
 
     <div class="dsahboard">
