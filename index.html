@@ -8,14 +8,14 @@
     <style>
         body {background-color: #1a1a1a; color:white; font-family: sans-serif; padding:20px; }
         .dsahboard {display:  flex; gap: 20px; flex-wrap: wrap; }
-        .card {background: #2d2d2d; padding: 20px; border-radius: 10px; flex: 1; min-width: 300px; }
+        .card {background: #333131; padding: 20px; border-radius: 10px; flex: 1; min-width: 300px; }
         h1 { color: #00ff99; }
-        .status { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .status { font-size: 100px; font-weight: bold; margin: 10px 0; }
         #chart {width: 100%; height: 400px; }
     </style>
 </head>
 <body>
-    <h1>⚡ 智慧電力調度系統 (Prototype)</h1>
+    <h1>🏠 智慧建築能源管理系統</h1>
 
     <div class="dsahboard">
         <div class="card">
@@ -25,7 +25,7 @@
         </div>
 
         <div class="card">
-            <h3>全城市區域電力分配</h3>
+            <h3>各項設備即時功耗</h3>
             <div id="chart"></div>
         </div>
     </div>
@@ -35,31 +35,36 @@
         const myChart=echarts.init(chartDom,'dark');
 
         function updateData(){
-            const currentLoad=Math.floor(Math.random()*50)+40;
+            const acPower = Math.floor(Math.random() * 40) + 10;     // 冷氣
+            const fridgePower = 15;                                  // 冰箱：固定 15% 
+            const lightPower = Math.floor(Math.random() * 10) + 2;   // 燈光
+            const evPower = Math.floor(Math.random() * 30);          // 電動車充電
+            const currentLoad = acPower + fridgePower + lightPower + evPower;
             document.getElementById('load-value').innerText=`${currentLoad}%`;
 
             document.getElementById('load-value').style.color = currentLoad > 80 ? '#ff4d4d' : '#00ff99';
 
             const option={
                 backgroundColor: 'transparent',
-                xAxis: {type: 'category', data: ['北區','中區','南區','東區','離島']},
-                yAxis: {type: 'value', max: 100},
+                xAxis: {type: 'category', data: ['冷氣', '冰箱','燈光', '電動車充電樁', '總負載']},
+                yAxis: {type: 'value', max: 120},
                 series: [{
-                    data: [
-                        currentLoad,
-                        Math.random()*80,
-                        Math.random()*70,
-                        Math.random()*60,
-                        Math.random()*50
-                    ],
+                    data: [acPower, fridgePower, lightPower, evPower,currentLoad],
                     type: 'bar',
-                    color: '#00ff99'
+                    itemStyle: {
+                        color: function(params){
+                            if (params.dataIndex === 4){
+                                return currentLoad > 80 ? '#ff4d4d' : '#ff9900';
+                            }
+                            return '#00ff99';
+                        }
+                    }
                 }]
             };
             myChart.setOption(option);
         }
 
-        setInterval(updateData, 2000);
+        setInterval(updateData, 5000);
 
         updateData();
 
