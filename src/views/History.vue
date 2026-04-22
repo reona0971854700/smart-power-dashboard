@@ -192,11 +192,13 @@ const initChart = () => {
     const roomDevicesList = devices.value.filter(d => d.room === roomName)
 
     if (roomDevicesList.length > 0) {
+      const totalPower = roomDevicesList.reduce((sum, d) => sum + (d.power || 0), 0)
+
       const mappedDevices = roomDevicesList
         .map(d => ({
           name: d.name,
-          value: d.value,
-          percent: ((d.value / params.data.value) * 100).toFixed(1)
+          value: d.power || 0,
+          percent: totalPower > 0 ? (((d.power || 0) / totalPower) * 100).toFixed(1) : 0
         }))
         .sort((a, b) => b.value - a.value)
 

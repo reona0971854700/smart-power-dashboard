@@ -25,10 +25,10 @@ async function connect() {
   try {
     poolPromise = new sql.ConnectionPool(config).connect();
     const pool = await poolPromise;
-    console.log('SQL Server 连接成功');
+    console.log('SQL Server 連接成功');
     return pool;
   } catch (err) {
-    console.error('SQL Server 连接失败 (将使用内存存储):', err.message);
+    console.error('SQL Server 連接失敗 (將使用內存存儲):', err.message);
     poolPromise = null;
     return null;
   }
@@ -74,7 +74,7 @@ const memoryStore = {
         const result = await pool.request().query('SELECT * FROM devices ORDER BY room, name');
         return result.recordset;
       } catch (e) {
-        console.log('使用内存存储');
+        console.log('使用內存存儲');
       }
     }
     return this.devices;

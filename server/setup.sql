@@ -5,7 +5,7 @@
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'SmartPowerDB')
 BEGIN
     CREATE DATABASE SmartPowerDB;
-    PRINT '数据库 SmartPowerDB 创建成功';
+    PRINT '數據庫 SmartPowerDB 創建成功';
 END
 GO
 
@@ -22,7 +22,7 @@ BEGIN
         power INT DEFAULT 0,
         created_at DATETIME DEFAULT GETDATE()
     );
-    PRINT '设备表创建成功';
+    PRINT '設備表創建成功';
 END
 GO
 
@@ -47,7 +47,7 @@ BEGIN
     ('微波爐', '廚房', 80),
     ('電鍋', '廚房', 50),
     ('抽油煙機', '廚房', 30);
-    PRINT '预设设备数据插入成功';
+    PRINT '預設設備插入成功';
 END
 GO
 

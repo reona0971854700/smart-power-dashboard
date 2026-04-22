@@ -20,15 +20,15 @@ const config = {
 
 async function initDatabase() {
   try {
-    console.log('正在连接 SQL Server...');
+    console.log('正在連接 SQL Server...');
     const pool = await sql.connect(config);
-    console.log('已连接到 SQL Server');
+    console.log('已連接到 SQL Server');
 
     await pool.query(`
       IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'SmartPowerDB')
       BEGIN
         CREATE DATABASE SmartPowerDB;
-        PRINT '数据库 SmartPowerDB 创建成功';
+        PRINT '數據庫 SmartPowerDB 創建成功';
       END
     `);
 
@@ -44,7 +44,7 @@ async function initDatabase() {
           power INT DEFAULT 0,
           created_at DATETIME DEFAULT GETDATE()
         );
-        PRINT '设备表创建成功';
+        PRINT '設備表創建成功';
       END
     `);
 
@@ -70,13 +70,13 @@ async function initDatabase() {
         ('電鍋', '廚房', 50),
         ('抽油煙機', '廚房', 30)
       `);
-      console.log('预设设备数据插入成功');
+      console.log('預設設備數據插入成功');
     }
 
-    console.log('数据库初始化完成！');
+    console.log('書據初始化完成');
     await pool.close();
   } catch (err) {
-    console.error('数据库初始化失败:', err.message);
+    console.error('數據庫初始化失敗:', err.message);
   }
 }
 
