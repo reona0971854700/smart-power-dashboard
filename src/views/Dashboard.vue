@@ -18,55 +18,42 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import * as echarts from 'echarts'
+import deviceApi from '../services/api'
 
 const chartRef = ref(null)
 let chartInstance = null
 
-const acPower = ref(0)
-const fridgePower = ref(15)
-const lightPower = ref(0)
-const evPower = ref(0)
+const devices = ref([])
 const currentLoad = ref(0)
 
 const loadColor = computed(() => currentLoad.value > 80 ? '#ff4d4d' : '#00ff99')
 const statusText = computed(() => currentLoad.value > 80 ? '⚠️ 負載過高' : '系統穩定進行中')
 
-const updateData = () => {
-  acPower.value = Math.floor(Math.random() * 40) + 10
-  fridgePower.value = 15
-  lightPower.value = Math.floor(Math.random() * 10) + 2
-  evPower.value = Math.floor(Math.random() * 30)
-  currentLoad.value = acPower.value + fridgePower.value + lightPower.value + evPower.value
-}
-
-const initChart = () => {
-  chartInstance = echarts.init(chartRef.value, 'dark')
-  updateChart()
+const calculateTotalPower = () => {
+  const total = devices.value.reduce((sum, d) => sum + (d.power || 0), 0)
+  currentLoad.value = Math.min(Math.round(total / 10), 100)
 }
 
 const updateChart = () => {
+  const deviceNames = devices.value.map(d => d.name)
+  const devicePowers = devices.value.map(d => d.power || 0)
+  const total = devicePowers.reduce((sum, p) => sum + p, 0)
+
   const option = {
     backgroundColor: 'transparent',
     xAxis: {
       type: 'category',
-      data: ['冷氣', '冰箱', '燈光', '電動車充電樁', '總負載']
+      data: [...deviceNames, '總負載']
     },
     yAxis: {
-      type: 'value',
-      max: 120
+      type: 'value'
     },
     series: [{
-      data: [
-        acPower.value,
-        fridgePower.value,
-        lightPower.value,
-        evPower.value,
-        currentLoad.value
-      ],
+      data: [...devicePowers, total],
       type: 'bar',
       itemStyle: {
         color: (params) => {
-          if (params.dataIndex === 4) {
+          if (params.dataIndex === devicePowers.length) {
             return currentLoad.value > 80 ? '#ff4d4d' : '#ff9900'
           }
           return '#00ff99'
@@ -77,16 +64,28 @@ const updateChart = () => {
   chartInstance.setOption(option)
 }
 
+const loadDevices = async () => {
+  try {
+    devices.value = await deviceApi.getAll()
+    calculateTotalPower()
+    updateChart()
+  } catch (err) {
+    console.error('載入設備失敗:', err)
+  }
+}
+
+const initChart = () => {
+  chartInstance = echarts.init(chartRef.value, 'dark')
+}
+
 let intervalId = null
 
 onMounted(() => {
   initChart()
-  updateData()
-  updateChart()
+  loadDevices()
   intervalId = setInterval(() => {
-    updateData()
-    updateChart()
-  }, 60000)
+    loadDevices()
+  }, 30000)
 })
 
 onUnmounted(() => {
