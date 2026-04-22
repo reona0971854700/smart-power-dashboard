@@ -43,6 +43,16 @@
           class="form-input"
           placeholder="搜尋設備名稱..."
         />
+        <div class="form-group" style="margin-top: 15px;">
+          <label>排序方式</label>
+          <select v-model="sortBy" class="form-select">
+            <option value="">預設排序</option>
+            <option value="power-asc">用電功率：由小到大</option>
+            <option value="power-desc">用電功率：由大到小</option>
+            <option value="room">主項目：房間</option>
+            <option value="name">次項目：設備名稱</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -76,6 +86,7 @@ import deviceApi from '../services/api'
 const devices = ref([])
 const rooms = ref(['客廳', '主臥', '次臥', '廁所', '廚房'])
 const searchQuery = ref('')
+const sortBy = ref('')
 const newDevice = ref({
   name: '',
   room: '',
@@ -89,12 +100,32 @@ const canAdd = computed(() =>
 )
 
 const filteredDevices = computed(() => {
-  if (!searchQuery.value) return devices.value
-  const query = searchQuery.value.toLowerCase()
-  return devices.value.filter(d =>
-    d.name.toLowerCase().includes(query) ||
-    d.room.toLowerCase().includes(query)
-  )
+  let result = devices.value
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(d =>
+      d.name.toLowerCase().includes(query) ||
+      d.room.toLowerCase().includes(query)
+    )
+  }
+
+  switch (sortBy.value) {
+    case 'power-asc':
+      result = [...result].sort((a, b) => (a.power || 0) - (b.power || 0))
+      break
+    case 'power-desc':
+      result = [...result].sort((a, b) => (b.power || 0) - (a.power || 0))
+      break
+    case 'room':
+      result = [...result].sort((a, b) => (a.room || '').localeCompare(b.room || ''))
+      break
+    case 'name':
+      result = [...result].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      break
+  }
+
+  return result
 })
 
 const loadDevices = async () => {
@@ -152,6 +183,10 @@ onMounted(() => {
   display: block;
   margin-bottom: 5px;
   color: #aaa;
+}
+
+.form-group-margin {
+  margin-top: 15px;
 }
 
 .form-input,

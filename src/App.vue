@@ -7,7 +7,7 @@
           <li><router-link to="/">儀錶板</router-link></li>
           <li><router-link to="/history">歷史數據</router-link></li>
           <li><router-link to="/management">設備管理</router-link></li>
-          <li><a href="#">系統設定</a></li>
+          <li><a href="#"></a></li>
         </ul>
       </div>
     </nav>
