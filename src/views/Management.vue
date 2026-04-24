@@ -226,7 +226,7 @@ onMounted(() => {
 }
 
 .device-name {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: bold;
   color: white;
 }
