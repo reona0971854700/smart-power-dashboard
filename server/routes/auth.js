@@ -154,7 +154,7 @@ router.post('/get-security-questions', async (req, res) => {
   }
 });
 
-// 验证安全问题（3题答对1题即可）
+// 驗證安全問題（3對1即可）
 router.post('/verify-security-questions', async (req, res) => {
   try {
     const { username, answers } = req.body;
@@ -204,7 +204,7 @@ router.post('/verify-security-questions', async (req, res) => {
   }
 });
 
-// 重置密码（通过安全问题验证后）
+// 重置密碼（通過安全問題驗證後）
 router.post('/reset-password', async (req, res) => {
   try {
     const { username, newPassword } = req.body;
