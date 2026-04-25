@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
   try {
     const { name, room, power = 0 } = req.body;
     if (!name || !room) {
-      return res.status(400).json({ error: '名称和房间为必填项' });
+      return res.status(400).json({ error: '名稱和房間必須填' });
     }
 
     const pool = await getPool();
@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
       await memoryStore.add(name, room, power);
     }
 
-    res.json({ message: '设备新增成功' });
+    res.json({ message: '設備新增成功' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -58,7 +58,7 @@ router.delete('/:id', async (req, res) => {
       await memoryStore.delete(parseInt(req.params.id));
     }
 
-    res.json({ message: '设备删除成功' });
+    res.json({ message: '設備刪除成功' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -78,7 +78,7 @@ router.put('/:id', async (req, res) => {
         .query('UPDATE devices SET name = @name, room = @room, power = @power WHERE id = @id');
     }
 
-    res.json({ message: '设备更新成功' });
+    res.json({ message: '設備更新成功' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

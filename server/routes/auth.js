@@ -4,7 +4,7 @@ import db from '../db.js';
 const router = express.Router();
 const { getPool, memoryStore, sql } = db;
 
-// 登录
+// 登入
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// 修改密码
+// 修改密碼
 router.post('/change-password', async (req, res) => {
   try {
     const { username, oldPassword, newPassword } = req.body;
@@ -50,7 +50,7 @@ router.post('/change-password', async (req, res) => {
     const pool = await getPool();
     
     if (pool) {
-      // 验证旧密码
+      // 驗證舊密碼
       const verifyResult = await pool.request()
         .input('username', sql.VarChar(50), username)
         .input('password', sql.VarChar(255), oldPassword)
@@ -60,7 +60,7 @@ router.post('/change-password', async (req, res) => {
         return res.status(401).json({ success: false, message: '舊密碼錯誤' });
       }
 
-      // 更新密码
+      // 更新密碼
       await pool.request()
         .input('username', sql.VarChar(50), username)
         .input('newPassword', sql.VarChar(255), newPassword)
@@ -75,7 +75,7 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
-// 设置安全问题
+// 設置安全問題
 router.post('/set-security-questions', async (req, res) => {
   try {
     const { username, questions, answers } = req.body;
@@ -115,7 +115,7 @@ router.post('/set-security-questions', async (req, res) => {
   }
 });
 
-// 获取安全问题（用于忘记密码）
+// 獲取安全問題（用於忘記密碼）
 router.post('/get-security-questions', async (req, res) => {
   try {
     const { username } = req.body;

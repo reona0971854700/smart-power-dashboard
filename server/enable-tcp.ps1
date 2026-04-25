@@ -2,10 +2,10 @@
 $serviceName = "MSSQL`$SQLEXPRESS"
 
 try {
-    # 使用 WMI 启用 TCP/IP
+    # 使用 WMI 啟用 TCP/IP
     $wmi = Get-WmiObject -Namespace "root\Microsoft\SqlServer\ComputerManagement16" -Class ServerNetworkProtocol -ErrorAction SilentlyContinue
 
-    # 尝试通过注册表启用
+    # 嘗試通過註冊表啟用
     $tcpKey = "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQLServer\SuperSocketNetLib\Tcp"
     if (Test-Path $tcpKey) {
         Set-ItemProperty -Path $tcpKey -Name Enabled -Value 1

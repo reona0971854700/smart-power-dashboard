@@ -17,5 +17,5 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`API 服务器运行在 http://localhost:${PORT}`);
+  console.log(`API 伺服器運行在 http://localhost:${PORT}`);
 });
