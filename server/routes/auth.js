@@ -230,4 +230,52 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// 更改帳號
+router.post('/change-username', async (req, res) => {
+  try {
+    const { username, password, newUsername } = req.body;
+
+    if (!username || !password || !newUsername) {
+      return res.status(400).json({ success: false, message: '請填寫完整資料' });
+    }
+
+    const specialChars = /[!@#$%^&*()_+\-=\[\]{}|;':",.\/<>?\\`~]/;
+    if (specialChars.test(newUsername)) {
+      return res.status(400).json({ success: false, message: '帳號不得包含特殊字符' });
+    }
+
+    const pool = await getPool();
+
+    if (pool) {
+      const verifyResult = await pool.request()
+        .input('username', sql.VarChar(50), username)
+        .input('password', sql.VarChar(255), password)
+        .query('SELECT id FROM users WHERE username = @username AND password = @password');
+
+      if (verifyResult.recordset.length === 0) {
+        return res.status(401).json({ success: false, message: '密碼輸入錯誤' });
+      }
+
+      const checkResult = await pool.request()
+        .input('newUsername', sql.VarChar(50), newUsername)
+        .query('SELECT id FROM users WHERE username = @newUsername');
+
+      if (checkResult.recordset.length > 0) {
+        return res.status(400).json({ success: false, message: '此帳號已有人使用' });
+      }
+
+      await pool.request()
+        .input('username', sql.VarChar(50), username)
+        .input('newUsername', sql.VarChar(50), newUsername)
+        .query('UPDATE users SET username = @newUsername WHERE username = @username');
+
+      return res.json({ success: true, message: '帳號修改成功，請重新登入' });
+    } else {
+      return res.status(500).json({ success: false, message: '無法連接數據庫' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 export default router;

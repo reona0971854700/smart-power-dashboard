@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <nav class="navbar" v-if="authService.isLoggedIn()">
+    <nav class="navbar" v-if="isLoggedIn">
       <div class="nav-container">
         <div class="logo">⚡ SmartPower-Dashboard</div>
         <ul class="nav-links">
@@ -8,7 +8,7 @@
           <li><router-link to="/history">歷史數據</router-link></li>
           <li><router-link to="/management">設備管理</router-link></li>
           <li><a href="#" @click.prevent="showSettings = true">系統設定</a></li>
-          <li><a href="#" @click.prevent="handleLogout" class="logout-link">登出 ({{ username }})</a></li>
+          <li><a href="#" @click.prevent="handleLogout" class="logout-link">登出</a></li>
         </ul>
       </div>
     </nav>
@@ -25,6 +25,7 @@
         <div class="modal-body">
           <div class="settings-tabs">
             <button :class="{ active: settingsTab === 'password' }" @click="settingsTab = 'password'">變更密碼</button>
+            <button :class="{ active: settingsTab === 'username' }" @click="settingsTab = 'username'">更改帳號</button>
             <button :class="{ active: settingsTab === 'security' }" @click="settingsTab = 'security'">安全問題</button>
           </div>
 
@@ -51,6 +52,32 @@
             </div>
             <button @click="handleChangePassword" class="search-btn" style="width: 100%; margin-top: 15px;">
               變更密碼
+            </button>
+          </div>
+
+          <div v-if="settingsTab === 'username'">
+            <h3>更改帳號</h3>
+            <div class="form-group">
+              <label>目前帳號</label>
+              <input v-model="changeUsername.currentUsername" type="text" class="form-input" disabled />
+            </div>
+            <div class="form-group">
+              <label>目前密碼</label>
+              <input v-model="changeUsername.password" type="password" class="form-input" placeholder="請輸入目前密碼" />
+            </div>
+            <div class="form-group">
+              <label>新帳號</label>
+              <input v-model="changeUsername.newUsername" type="text" class="form-input" placeholder="請輸入新帳號" />
+            </div>
+            <div class="form-group">
+              <label>確認新帳號</label>
+              <input v-model="changeUsername.confirmUsername" type="text" class="form-input" placeholder="請再次輸入新帳號" />
+            </div>
+            <div v-if="usernameMessage" class="message" :class="{ error: usernameError }">
+              {{ usernameMessage }}
+            </div>
+            <button @click="handleChangeUsername" class="search-btn" style="width: 100%; margin-top: 15px;">
+              更改帳號
             </button>
           </div>
 
@@ -95,7 +122,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import authService from './services/auth'
 
@@ -103,8 +130,11 @@ const router = useRouter()
 const showSettings = ref(false)
 const settingsTab = ref('password')
 const username = ref('')
+const isLoggedIn = ref(false)
 const passwordMessage = ref('')
 const passwordError = ref(false)
+const usernameMessage = ref('')
+const usernameError = ref(false)
 const securityMessage = ref('')
 const securityError = ref(false)
 
@@ -115,6 +145,13 @@ const changePassword = ref({
   confirmPassword: ''
 })
 
+const changeUsername = ref({
+  currentUsername: '',
+  password: '',
+  newUsername: '',
+  confirmUsername: ''
+})
+
 const securityQuestions = ref([
   { question: '', answer: '' },
   { question: '', answer: '' },
@@ -122,8 +159,10 @@ const securityQuestions = ref([
 ])
 
 onMounted(async () => {
+  isLoggedIn.value = authService.isLoggedIn()
   username.value = authService.getUsername() || ''
   changePassword.value.username = username.value
+  changeUsername.value.currentUsername = username.value
   
   try {
     const result = await authService.getSecurityQuestions(username.value)
@@ -140,7 +179,58 @@ onMounted(async () => {
 
 const handleLogout = () => {
   authService.logout()
+  isLoggedIn.value = false
   router.push('/login')
+}
+
+watch(() => router.currentRoute.value.path, () => {
+  isLoggedIn.value = authService.isLoggedIn()
+})
+
+const handleChangeUsername = async () => {
+  usernameMessage.value = ''
+  usernameError.value = false
+
+  if (!changeUsername.value.password || !changeUsername.value.newUsername) {
+    usernameMessage.value = '請填寫所有欄位'
+    usernameError.value = true
+    return
+  }
+
+  if (changeUsername.value.newUsername !== changeUsername.value.confirmUsername) {
+    usernameMessage.value = '新帳號與確認帳號不一致'
+    usernameError.value = true
+    return
+  }
+
+  const specialChars = /[!@#$%^&*()_+\-=\[\]{}|;':",.\/<>?\\`~]/;
+  if (specialChars.test(changeUsername.value.newUsername)) {
+    usernameMessage.value = '帳號不得包含特殊字符'
+    usernameError.value = true
+    return
+  }
+
+  try {
+    const result = await authService.changeUsername(
+      changeUsername.value.currentUsername,
+      changeUsername.value.password,
+      changeUsername.value.newUsername
+    )
+
+    if (result.success) {
+      usernameMessage.value = '帳號修改成功，請重新登入'
+      usernameError.value = false
+      setTimeout(() => {
+        handleLogout()
+      }, 2000)
+    } else {
+      usernameMessage.value = result.message
+      usernameError.value = true
+    }
+  } catch (error) {
+    usernameMessage.value = '修改失敗'
+    usernameError.value = true
+  }
 }
 
 const handleSaveSecurityQuestions = async () => {

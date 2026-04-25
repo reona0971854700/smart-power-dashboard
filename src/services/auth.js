@@ -52,6 +52,12 @@ const authService = {
       body: JSON.stringify({ username, newPassword })
     }),
 
+  changeUsername: (username, password, newUsername) =>
+    fetchJSON(`${API_URL}/auth/change-username`, {
+      method: 'POST',
+      body: JSON.stringify({ username, password, newUsername })
+    }),
+
   isLoggedIn: () => localStorage.getItem('isLoggedIn') === 'true',
 
   logout: () => {
