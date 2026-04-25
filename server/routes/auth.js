@@ -75,4 +75,159 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
+// 设置安全问题
+router.post('/set-security-questions', async (req, res) => {
+  try {
+    const { username, questions, answers } = req.body;
+
+    if (!username || !questions || !answers) {
+      return res.status(400).json({ success: false, message: '請填寫完整資料' });
+    }
+
+    const pool = await getPool();
+
+    if (pool) {
+      await pool.request()
+        .input('username', sql.VarChar(50), username)
+        .input('q1', sql.NVarChar(255), questions[0] || '')
+        .input('a1', sql.NVarChar(255), answers[0] || '')
+        .input('q2', sql.NVarChar(255), questions[1] || '')
+        .input('a2', sql.NVarChar(255), answers[1] || '')
+        .input('q3', sql.NVarChar(255), questions[2] || '')
+        .input('a3', sql.NVarChar(255), answers[2] || '')
+        .query(`
+          UPDATE users SET
+            security_question1 = @q1,
+            security_answer1 = @a1,
+            security_question2 = @q2,
+            security_answer2 = @a2,
+            security_question3 = @q3,
+            security_answer3 = @a3
+          WHERE username = @username
+        `);
+
+      return res.json({ success: true, message: '安全問題設定成功' });
+    } else {
+      return res.status(500).json({ success: false, message: '無法連接數據庫' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 获取安全问题（用于忘记密码）
+router.post('/get-security-questions', async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ success: false, message: '請輸入帳號' });
+    }
+
+    const pool = await getPool();
+
+    if (pool) {
+      const result = await pool.request()
+        .input('username', sql.VarChar(50), username)
+        .query(`
+          SELECT security_question1, security_question2, security_question3
+          FROM users WHERE username = @username
+        `);
+
+      if (result.recordset.length > 0) {
+        const user = result.recordset[0];
+        if (!user.security_question1 && !user.security_question2 && !user.security_question3) {
+          return res.status(400).json({ success: false, message: '該帳號尚未設定安全問題，請聯繫管理員' });
+        }
+        return res.json({
+          success: true,
+          questions: [user.security_question1, user.security_question2, user.security_question3]
+        });
+      } else {
+        return res.status(404).json({ success: false, message: '帳號不存在' });
+      }
+    } else {
+      return res.status(500).json({ success: false, message: '無法連接數據庫' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 验证安全问题（3题答对1题即可）
+router.post('/verify-security-questions', async (req, res) => {
+  try {
+    const { username, answers } = req.body;
+
+    if (!username || !answers) {
+      return res.status(400).json({ success: false, message: '請填寫完整資料' });
+    }
+
+    const pool = await getPool();
+
+    if (pool) {
+      const result = await pool.request()
+        .input('username', sql.VarChar(50), username)
+        .query(`
+          SELECT security_answer1, security_answer2, security_answer3
+          FROM users WHERE username = @username
+        `);
+
+      if (result.recordset.length > 0) {
+        const user = result.recordset[0];
+        const correctAnswers = [
+          user.security_answer1,
+          user.security_answer2,
+          user.security_answer3
+        ];
+
+        let correctCount = 0;
+        for (let i = 0; i < 3; i++) {
+          if (answers[i] && answers[i].trim().toLowerCase() === (correctAnswers[i] || '').trim().toLowerCase()) {
+            correctCount++;
+          }
+        }
+
+        if (correctCount >= 1) {
+          return res.json({ success: true, message: '驗證成功' });
+        } else {
+          return res.status(401).json({ success: false, message: '安全問題答案錯誤' });
+        }
+      } else {
+        return res.status(404).json({ success: false, message: '帳號不存在' });
+      }
+    } else {
+      return res.status(500).json({ success: false, message: '無法連接數據庫' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 重置密码（通过安全问题验证后）
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { username, newPassword } = req.body;
+
+    if (!username || !newPassword) {
+      return res.status(400).json({ success: false, message: '請填寫完整資料' });
+    }
+
+    const pool = await getPool();
+
+    if (pool) {
+      await pool.request()
+        .input('username', sql.VarChar(50), username)
+        .input('newPassword', sql.VarChar(255), newPassword)
+        .query('UPDATE users SET password = @newPassword WHERE username = @username');
+
+      return res.json({ success: true, message: '密碼重置成功' });
+    } else {
+      return res.status(500).json({ success: false, message: '無法連接數據庫' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 export default router;

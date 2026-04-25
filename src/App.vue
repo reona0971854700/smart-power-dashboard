@@ -23,29 +23,71 @@
           <button class="modal-close" @click="showSettings = false">&times;</button>
         </div>
         <div class="modal-body">
-          <h3>變更密碼</h3>
-          <div class="form-group">
-            <label>帳號</label>
-            <input v-model="changePassword.username" type="text" class="form-input" disabled />
+          <div class="settings-tabs">
+            <button :class="{ active: settingsTab === 'password' }" @click="settingsTab = 'password'">變更密碼</button>
+            <button :class="{ active: settingsTab === 'security' }" @click="settingsTab = 'security'">安全問題</button>
           </div>
-          <div class="form-group">
-            <label>舊密碼</label>
-            <input v-model="changePassword.oldPassword" type="password" class="form-input" placeholder="請輸入舊密碼" />
+
+          <div v-if="settingsTab === 'password'">
+            <h3>變更密碼</h3>
+            <div class="form-group">
+              <label>帳號</label>
+              <input v-model="changePassword.username" type="text" class="form-input" disabled />
+            </div>
+            <div class="form-group">
+              <label>舊密碼</label>
+              <input v-model="changePassword.oldPassword" type="password" class="form-input" placeholder="請輸入舊密碼" />
+            </div>
+            <div class="form-group">
+              <label>新密碼</label>
+              <input v-model="changePassword.newPassword" type="password" class="form-input" placeholder="請輸入新密碼" />
+            </div>
+            <div class="form-group">
+              <label>確認新密碼</label>
+              <input v-model="changePassword.confirmPassword" type="password" class="form-input" placeholder="請再次輸入新密碼" />
+            </div>
+            <div v-if="passwordMessage" class="message" :class="{ error: passwordError }">
+              {{ passwordMessage }}
+            </div>
+            <button @click="handleChangePassword" class="search-btn" style="width: 100%; margin-top: 15px;">
+              變更密碼
+            </button>
           </div>
-          <div class="form-group">
-            <label>新密碼</label>
-            <input v-model="changePassword.newPassword" type="password" class="form-input" placeholder="請輸入新密碼" />
+
+          <div v-if="settingsTab === 'security'">
+            <h3>設定安全問題</h3>
+            <p class="security-tip">請設定 3 個安全問題，忘記密碼時需回答這些問題</p>
+            <div class="form-group">
+              <label>問題 1</label>
+              <input v-model="securityQuestions[0].question" type="text" class="form-input" placeholder="例如：媽媽的名字叫什麼？" />
+            </div>
+            <div class="form-group">
+              <label>答案 1</label>
+              <input v-model="securityQuestions[0].answer" type="text" class="form-input" placeholder="請輸入答案" />
+            </div>
+            <div class="form-group">
+              <label>問題 2</label>
+              <input v-model="securityQuestions[1].question" type="text" class="form-input" placeholder="例如：您最喜歡的食物是什麼？" />
+            </div>
+            <div class="form-group">
+              <label>答案 2</label>
+              <input v-model="securityQuestions[1].answer" type="text" class="form-input" placeholder="請輸入答案" />
+            </div>
+            <div class="form-group">
+              <label>問題 3</label>
+              <input v-model="securityQuestions[2].question" type="text" class="form-input" placeholder="例如：您就讀的國小名稱？" />
+            </div>
+            <div class="form-group">
+              <label>答案 3</label>
+              <input v-model="securityQuestions[2].answer" type="text" class="form-input" placeholder="請輸入答案" />
+            </div>
+            <div v-if="securityMessage" class="message" :class="{ error: securityError }">
+              {{ securityMessage }}
+            </div>
+            <button @click="handleSaveSecurityQuestions" class="search-btn" style="width: 100%; margin-top: 15px;">
+              儲存安全問題
+            </button>
           </div>
-          <div class="form-group">
-            <label>確認新密碼</label>
-            <input v-model="changePassword.confirmPassword" type="password" class="form-input" placeholder="請再次輸入新密碼" />
-          </div>
-          <div v-if="passwordMessage" class="message" :class="{ error: passwordError }">
-            {{ passwordMessage }}
-          </div>
-          <button @click="handleChangePassword" class="search-btn" style="width: 100%; margin-top: 15px;">
-            變更密碼
-          </button>
         </div>
       </div>
     </div>
@@ -59,9 +101,12 @@ import authService from './services/auth'
 
 const router = useRouter()
 const showSettings = ref(false)
+const settingsTab = ref('password')
 const username = ref('')
 const passwordMessage = ref('')
 const passwordError = ref(false)
+const securityMessage = ref('')
+const securityError = ref(false)
 
 const changePassword = ref({
   username: '',
@@ -70,14 +115,71 @@ const changePassword = ref({
   confirmPassword: ''
 })
 
-onMounted(() => {
+const securityQuestions = ref([
+  { question: '', answer: '' },
+  { question: '', answer: '' },
+  { question: '', answer: '' }
+])
+
+onMounted(async () => {
   username.value = authService.getUsername() || ''
   changePassword.value.username = username.value
+  
+  try {
+    const result = await authService.getSecurityQuestions(username.value)
+    if (result.success && result.questions) {
+      securityQuestions.value = result.questions.map((q, i) => ({
+        question: q || '',
+        answer: ''
+      }))
+    }
+  } catch (e) {
+    console.log('無法取得安全問題')
+  }
 })
 
 const handleLogout = () => {
   authService.logout()
   router.push('/login')
+}
+
+const handleSaveSecurityQuestions = async () => {
+  securityMessage.value = ''
+  securityError.value = false
+
+  const hasQuestions = securityQuestions.value.some(q => q.question.trim() !== '')
+  const hasAnswers = securityQuestions.value.every(q => q.answer.trim() !== '')
+
+  if (!hasQuestions) {
+    securityMessage.value = '請至少填寫一個安全問題'
+    securityError.value = true
+    return
+  }
+
+  if (!hasAnswers) {
+    securityMessage.value = '請填寫所有問題的答案'
+    securityError.value = true
+    return
+  }
+
+  try {
+    const result = await authService.setSecurityQuestions(
+      username.value,
+      securityQuestions.value.map(q => q.question),
+      securityQuestions.value.map(q => q.answer)
+    )
+
+    if (result.success) {
+      securityMessage.value = '安全問題設定成功'
+      securityError.value = false
+    } else {
+      securityMessage.value = result.message
+      securityError.value = true
+    }
+  } catch (error) {
+    securityMessage.value = '設定失敗'
+    securityError.value = true
+  }
 }
 
 const handleChangePassword = async () => {
@@ -178,6 +280,42 @@ const handleChangePassword = async () => {
 .modal-body h3 {
   color: #00ff99;
   margin-bottom: 20px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #444;
+  padding-bottom: 10px;
+}
+
+.settings-tabs button {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: all 0.3s;
+}
+
+.settings-tabs button:hover {
+  color: #fff;
+  background: rgba(0, 255, 153, 0.1);
+}
+
+.settings-tabs button.active {
+  color: #00ff99;
+  background: rgba(0, 255, 153, 0.2);
+  border-bottom: 2px solid #00ff99;
+}
+
+.security-tip {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
 }
 
 .form-group {
