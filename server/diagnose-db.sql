@@ -1,5 +1,5 @@
--- 数据库诊断脚本
--- 请在 SQL Server Management Studio 中执行此脚本，检查安全问题功能是否正常
+-- 數據庫診斷腳本
+-- 請在 SQL Server Management Studio 中執行此腳本，檢查安全問題功能是否正常
 
 USE SmartPowerDB;
 GO

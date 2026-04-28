@@ -1,7 +1,7 @@
--- SQL Server 数据库设置脚本
--- 运行前请先在 SQL Server Management Studio 中执行此脚本
+-- SQL Server 數據庫設置腳本
+-- 運行前請先在 SQL Server Management Studio 中執行此腳本
 
--- 创建数据库（如果不存在）
+-- 創建數據庫（如果不存在）
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'SmartPowerDB')
 BEGIN
     CREATE DATABASE SmartPowerDB;
