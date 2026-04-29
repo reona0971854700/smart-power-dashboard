@@ -52,6 +52,12 @@
 
 ---
 
+## 專案展示
+點擊連結觀看完整展示
+[Smart-Power-Dashboard video]https://youtu.be/KXn9A0o8s58
+
+---
+
 ## 測試帳號
 
 系統提供以下測試帳號供測試使用：
