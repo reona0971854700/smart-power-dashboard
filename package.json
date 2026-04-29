@@ -7,7 +7,7 @@
     "dev": "concurrently \"node server/index.js\" \"vite\"",
     "build": "vite build",
     "preview": "vite preview",
-    "frontend" : "vite"
+    "frontend": "vite"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
-    "vite": "^5.0.0",
-    "concurrently" : "^8.2.2"
+    "concurrently": "^8.2.2",
+    "vite": "^5.0.0"
   }
 }
